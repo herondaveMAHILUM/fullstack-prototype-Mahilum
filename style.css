@@ -3,27 +3,81 @@ body {
     padding: 0%;
 }
 
-nav {
-    background-color: darkslategray;
-    display: flex;
+body.not-authenticated .role-logged-in { 
+    display: none; 
 }
 
-nav a {
+body.authenticated .role-logged-out { 
+    display: none; 
+}
+
+.role-admin { 
+    display: none; 
+}
+
+body.is-admin .role-admin { 
+    display: block; 
+}
+
+
+nav h3 {
+    color: white;
+}
+
+nav {
+    background-color: darkcyan;
+    padding: 25px;
     display: flex;
-    flex-direction: column;
-    align-items: end;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#nav-links {
+    display: flex;
+    flex-direction: row; /* horizontal links */
+    position: relative;   /* needed for dropdown absolute positioning */
+    flex-direction: column; 
+}
+
+#nav-links a {
+    color: white;
+    margin-left: 20px;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;      /* horizontal links */
+}
+
+#userNavLink {
+    color: white;
+    text-decoration: none;
 }
 
 .page {
     display: none;
     width: 100%;
     height: 100%;
-    border: 1px solid black;
     padding: 25%;
     box-sizing: border-box;
 }
 
 .page.active {
     display: block;
+}
+
+.contents {
+    position: absolute;
+    top: 300px;
+    left: 200px;
+}
+
+.forms {
+    position: absolute;
+    top: 200px;
+    left: 200px;
+}
+
+.box {
+    border: 1px solid black;
+    padding: 20px;
 }
 

@@ -1,63 +1,170 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <!----------------------- CSS Link ---------------------------->
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script>
+    <!----------------------- Bootstrap Link ---------------------------->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <div>
+
+    <nav>
+        <h3>Full-Stack App (Heron Dave Mahilum)</h3>
         <div>
-            <nav>
-                <h1>Full-Stack App (Heron Dave Mahilum)</h1>
-                <a href="#" onclick="showPage('login')">Login</a>
-                <a href="#" onclick="showPage('register')">Register</a>
-            </nav>
+            <div class="role-logged-out" id="nav-links">
+                <a href="#/login" id="loginLink">Login</a>
+                <a href="#/register" id="registerLink">Register</a>
+            </div>
+
+            <div class="dropdown d-none" id="userNavLink">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    User
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                    <li><a href="#/home" class="dropdown-item" id="userLogoutLink">Logout</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown d-none" id="adminDropdownContainer">
+                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Admin
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                    <li><a href="#/profile" class="dropdown-item">Profile</a></li>
+                    <li><a href="#/employees" class="dropdown-item">Employees</a></li>
+                    <li><a href="#/accounts" class="dropdown-item">Accounts</a></li>
+                    <li><a href="#/departments" class="dropdown-item">Departments</a></li>
+                    <li><a href="#/requests" class="dropdown-item">My Requests</a></li>
+                    <li><a href="#/home" class="dropdown-item" id="adminLogoutLink">Logout</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
+    </nav>
 
     <main>
-    <!--- User --->
-        <section id="home"class="page active">
-            <h2>Home</h2>
+        <!----------------------- Home Section ---------------------------->
+        <section id="home" class="page active">
+            <div class="contents">
+                <h2>Welcome to Full Stack App</h2>
+                <p>A static prototype before backend integration. Stimulates:</p>
+                <ul>
+                    <li>Email Registration + fake verification</li>
+                    <li>Log In with JWT-like token simulation</li>
+                    <li>Role-Based UI(Admin/User)</li>
+                    <li>CRUD for Employees, Departments, Requests</li>
+                </ul>
+                <button onclick="window.location.hash='#/login'">Get Started</button>
+            </div>
         </section>
 
+        <!----------------------- Register Section ---------------------------->
         <section id="register" class="page">
-            <h2>Register</h2>
-            <a href="#" onclick="showPage('vremail')">Sign Up</a>
+            <div class="forms">
+                <h2>Register Account</h2>
+                <p>First Name</p>
+                <input type="text" id="regFirstName" name="First Name">
+                <br>
+                <p>Last Name</p>
+                <input type="text" id="regLastName" name="Last Name">
+                <br>
+                <p>Email</p>
+                <input type="email" id="regEmail" name="Email">
+                <br>
+                <p>Password</p>
+                <input type="password" id="regPassword" name="Password">
+                <br><br>
+                <button onclick="register()">Sign Up</button>
+                <button onclick="window.location.hash='#/home'">Cancel</button>
+            </div>
         </section>
 
-        <section id="vremail" class="page">
+        <!----------------------- Email Verification Section ---------------------------->
+        <section id="verifyemail" class="page">
             <h2>Verify Email</h2>
-            <a href="#" onclick="showPage('login')">Go to Log In</a>
+            <p>For demo purposes, click below to simulate verification: </p>
+            <br>
+            <button onclick="simVerification()">Simulate Verification</button>
+            <button onclick="window.location.hash='#/login'">Go to Log In</button>
         </section>
 
+        <!----------------------- LogIn Section ---------------------------->
         <section id="login" class="page">
-            <h2>Log In</h2>
-            <a href="#" onclick="showPage('profile')">Log In</a>
+            <div class="forms">
+                <h2>Log In</h2>
+                <p>Email</p>
+                <input type="email" id="loginEmail" name="Email">
+                <br>
+                <p>Password</p>
+                <input type="password" id="loginPassword" name="Password">
+                <br><br>
+                <button onclick="loginUser()">Log In</button>
+                <button onclick="window.location.hash='#/home'">Cancel</button>
+            </div>
         </section>
 
+        <!----------------------- Profile Section ---------------------------->
         <section id="profile" class="page">
-            <h2>Profile</h2>
+            <div class="forms">
+                <h2>My Profile</h2>
+                <div class="box">
+                    <h3>Admin User</h3>
+                    <p>Email: admin@example.com</p>
+                    <p>Role: Admin</p>
+                    <button>Edit Profile</button>
+                </div>
+            </div>
         </section>
 
-    <!---- Admin ---->
+        <!----------------------- Employees Section ---------------------------->
         <section id="employees" class="page">
             <h2>Employees</h2>
         </section>
 
+        <!----------------------- Departments Section ---------------------------->
         <section id="departments" class="page">
             <h2>Departments</h2>
         </section>
 
+        <!----------------------- Accounts Section ---------------------------->
         <section id="accounts" class="page">
             <h2>Accounts</h2>
         </section>
 
+        <!----------------------- Requests Section ---------------------------->
         <section id="requests" class="page">
             <h2>Requests</h2>
+            <button id="newRequestBtn">+ New Request</button>
+
+            <div id="requestsTableContainer"></div>
+
+            <div id="newRequestForm" style="display:none; border:1px solid #ccc; padding:10px; margin-top:10px;">
+                <h3>New Request</h3>
+                <label>Type:</label>
+                <select id="requestType">
+                    <option value="Equipment">Equipment</option>
+                    <option value="Leave">Leave</option>
+                    <option value="Resources">Resources</option>
+                </select>
+
+                <div id="requestItemsContainer">
+                    <div class="requestItem">
+                        <input type="text" placeholder="Item Name" class="itemName">
+                        <input type="number" placeholder="Qty" class="itemQty" min="1">
+                        <button class="removeItemBtn">×</button>
+                    </div>
+                </div>
+
+                <button id="addItemBtn">+ Add Item</button>
+                <br><br>
+                <button id="submitRequestBtn">Submit Request</button>
+                <button id="cancelRequestBtn">Cancel</button>
+            </div>
         </section>
     </main>
+
+    <!----------------------- Java Script Link  ---------------------------->
+    <script src="script.js"></script>
+
 </body>
 </html>
