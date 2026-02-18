@@ -163,157 +163,205 @@ function loginUser() {
 
 
 // Authentication
-let currentUser = null;
-
 function setAuthState(isAuth, user = null) {
     currentUser = isAuth ? user : null;
 
+    const roleLoggedOut = document.querySelector('.role-logged-out');
+    const adminDropdown = document.getElementById('adminDropdownContainer');
+    const userNavLink = document.getElementById('userNavLink');
+
     if (isAuth) {
-        document.querySelector('.role-logged-out').classList.add('d-none');
+        if (roleLoggedOut) roleLoggedOut.classList.add('d-none');
 
         if (user.role === 'admin') {
-            document.getElementById('adminDropdownContainer').classList.remove('d-none');
-            document.getElementById('userNavLink').classList.add('d-none');
+            if (adminDropdown) adminDropdown.classList.remove('d-none');
+            if (userNavLink) userNavLink.classList.add('d-none');
         } else {
-            document.getElementById('userNavLink').classList.remove('d-none');
-            document.getElementById('adminDropdownContainer').classList.add('d-none');
+            if (userNavLink) userNavLink.classList.remove('d-none');
+            if (adminDropdown) adminDropdown.classList.add('d-none');
         }
     } else {
-        document.querySelector('.role-logged-out').classList.remove('d-none');
-        document.getElementById('adminDropdownContainer').classList.add('d-none');
-        document.getElementById('userNavLink').classList.add('d-none');
+        if (roleLoggedOut) roleLoggedOut.classList.remove('d-none');
+        if (adminDropdown) adminDropdown.classList.add('d-none');
+        if (userNavLink) userNavLink.classList.add('d-none');
     }
 }
+
 
 
 // Profile
 function renderProfile() {
     if (!currentUser) return;
 
-    const profileSection = document.getElementById('profile');
-    profileSection.innerHTML = `
-        <div class="forms">
-            <h2>My Profile</h2>
-            <div class="box">
-                <h3>${currentUser.firstName} ${currentUser.lastName}</h3>
-                <p>Email: ${currentUser.email}</p>
-                <p>Role: ${currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}</p>
-                <button id="editProfileBtn">Edit Profile</button>
-            </div>
-        </div>
-    `;
+    document.getElementById('profileName').textContent = `${currentUser.firstName} ${currentUser.lastName}`;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('profileRole').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
 
+    // Attach event listener to the button
     document.getElementById('editProfileBtn').addEventListener('click', () => {
         alert("Edit Profile clicked! (Feature coming soon)");
     });
 }
 
 
+
 // Accounts (Admin)
 function renderAccountsList() {
-    const container = document.getElementById('accounts');
-    container.innerHTML = `
-        <h2>Accounts</h2>
-        <button onclick="showAddAccountForm()">+ Add Account</button>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Verified</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${window.db.accounts.map((acc, index) => `
-                    <tr>
-                        <td>${acc.firstName} ${acc.lastName}</td>
-                        <td>${acc.email}</td>
-                        <td>${acc.role}</td>
-                        <td>${acc.verified ? '✅' : '❌'}</td>
-                        <td>
-                            <button onclick="editAccount(${index})">Edit</button>
-                            <button onclick="resetPassword(${index})">Reset PW</button>
-                            <button onclick="deleteAccount(${index})">Delete</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    const tbody = document.getElementById('accountsTableBody');
+    tbody.innerHTML = '';
+
+    window.db.accounts.forEach((acc, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+                <td>${acc.firstName} ${acc.lastName}</td>
+                <td>${acc.email}</td>
+                <td>${acc.role}</td>
+                <td>${acc.verified ? '✅' : '❌'}</td>
+                <td>
+                    <button class="btn btn-outline-primary me-1" onclick="showEditForm(${i})">Edit</button>
+                    <button class="btn btn-outline-warning me-1" onclick="resetPassword(${i})">Reset PW</button>
+                    <button class="btn btn-outline-danger" onclick="deleteAccount(${i})">Delete</button>
+                </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('addAccountBtn').classList.toggle('d-none', !currentUser || currentUser.role !== 'admin');
 }
+
+let editingAccountIndex = null;
+
+function showEditForm(index) {
+    editingAccountIndex = index;
+    const acc = window.db.accounts[index];
+
+    document.getElementById('editFirstName').value = acc.firstName;
+    document.getElementById('editLastName').value = acc.lastName;
+    document.getElementById('editEmail').value = acc.email;
+    document.getElementById('editRole').value = acc.role;
+    document.getElementById('editVerified').value = acc.verified ? 'true' : 'false';
+
+    document.getElementById('editAccountForm').style.display = 'block';
+}
+
+// Cancel button
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+    editingAccountIndex = null;
+    document.getElementById('editAccountForm').style.display = 'none';
+});
+
+// Save button
+document.getElementById('saveAccountBtn').addEventListener('click', () => {
+    if (editingAccountIndex === null) return;
+
+    const acc = window.db.accounts[editingAccountIndex];
+    acc.firstName = document.getElementById('editFirstName').value.trim();
+    acc.lastName = document.getElementById('editLastName').value.trim();
+    acc.email = document.getElementById('editEmail').value.trim().toLowerCase();
+    acc.role = document.getElementById('editRole').value;
+    acc.verified = document.getElementById('editVerified').value === 'true';
+
+    saveToStorage();
+    editingAccountIndex = null;
+    document.getElementById('editAccountForm').style.display = 'none';
+    renderAccountsList();
+});
+
+let resettingAccountIndex = null;
+
+function resetPassword(index) {
+    resettingAccountIndex = index;
+    const acc = window.db.accounts[index];
+
+    document.getElementById('newPasswordInput').value = '';
+    document.getElementById('resetPasswordForm').style.display = 'block';
+}
+
+// Cancel button
+document.getElementById('cancelPasswordBtn').addEventListener('click', () => {
+    resettingAccountIndex = null;
+    document.getElementById('resetPasswordForm').style.display = 'none';
+});
+
+// Save button
+document.getElementById('savePasswordBtn').addEventListener('click', () => {
+    if (resettingAccountIndex === null) return;
+
+    const newPassword = document.getElementById('newPasswordInput').value.trim();
+    if (!newPassword || newPassword.length < 6) return alert("Password must be at least 6 characters");
+
+    window.db.accounts[resettingAccountIndex].password = newPassword;
+    saveToStorage();
+    resettingAccountIndex = null;
+    document.getElementById('resetPasswordForm').style.display = 'none';
+    alert("Password successfully updated!");
+});
+
+function deleteAccount(index) {
+    const acc = window.db.accounts[index];
+    if (!confirm(`Are you sure you want to delete ${acc.firstName} ${acc.lastName}?`)) return;
+
+    window.db.accounts.splice(index, 1); // remove from array
+    saveToStorage();
+    renderAccountsList();
+}
+
 
 
 // Employees & Departments (Admin)
 function renderEmployeesTable() {
-    const container = document.getElementById('employees');
-    const employees = window.db.employees || [];
+    const tbody = document.getElementById('employeesTableBody');
+    tbody.innerHTML = '';
 
-    container.innerHTML = `
-        <h2>Employees</h2>
-        <button onclick="alert('Add Employee not implemented')">+ Add Employee</button>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${employees.map((e, i) => `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${e.email || ''}</td>
-                        <td>${e.role || ''}</td>
-                        <td>${e.department || ''}</td>
-                        <td>
-                            <button onclick="alert('Edit Employee not implemented')">Edit</button>
-                            <button onclick="alert('Delete Employee not implemented')">Delete</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    const employees = window.db.employees || [];
+    employees.forEach((e, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${e.email || ''}</td>
+            <td>${e.role || ''}</td>
+            <td>${e.department || ''}</td>
+            <td>
+                <button onclick="alert('Edit Employee not implemented')">Edit</button>
+                <button onclick="alert('Delete Employee not implemented')">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Show add button only for admin
+    document.getElementById('addEmployeeBtn').classList.toggle('d-none', !currentUser || currentUser.role !== 'admin');
 }
+
 
 function renderDepartmentsTable() {
-    const container = document.getElementById('departments');
-    const departments = window.db.departments || [];
+    const tbody = document.getElementById('departmentsTableBody');
+    tbody.innerHTML = '';
 
-    container.innerHTML = `
-        <h2>Departments</h2>
-        <button onclick="alert('Add Department not implemented')">+ Add Department</button>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${departments.map((d, i) => `
-                    <tr>
-                        <td>${d.name}</td>
-                        <td>
-                            <button onclick="alert('Edit Department not implemented')">Edit</button>
-                            <button onclick="alert('Delete Department not implemented')">Delete</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    const departments = window.db.departments || [];
+    departments.forEach((d, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${d.name}</td>
+            <td>
+                <button onclick="alert('Edit Department not implemented')">Edit</button>
+                <button onclick="alert('Delete Department not implemented')">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('addDepartmentBtn').classList.toggle('d-none', !currentUser || currentUser.role !== 'admin');
 }
+
 
 
 // User Requests
 function renderRequestsTable() {
     if (!currentUser) return;
+
+    const newRequestBtn = document.getElementById('newRequestBtn');
+    newRequestBtn.classList.toggle('d-none', currentUser.role !== 'user');
 
     const container = document.getElementById('requestsTableContainer');
     const userRequests = window.db.requests.filter(r => r.employeeEmail === currentUser.email);
@@ -346,6 +394,7 @@ function renderRequestsTable() {
         </table>
     `;
 }
+
 
 
 // Request Form
